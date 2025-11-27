@@ -1,8 +1,8 @@
 # edinet-financial-tools
 
-EDINET から企業の決算短信を取得し、以下を行う Python ツールセットです：
+EDINET から企業の有価証券報告書、半期報告書、四半期報告書などを取得し、以下を行う Python ツールセットです：
 
-* Streamlit による **決算内容の閲覧**
+* Streamlit による **財務内容の閲覧**
 * GitHub Pages 向けの **Markdown 記事生成**
 * Instagram 投稿用グラフのための **元データ生成**
 
@@ -12,14 +12,14 @@ EDINET から企業の決算短信を取得し、以下を行う Python ツー�
 
 ## 🚀 Features（機能一覧）
 
-### 🔎 **1. EDINET API を利用した決算短信検索**
+### 🔎 **1. EDINET API を利用した法定開示書類検索**
 
 * 企業コード／銘柄コード／期間を指定して EDINET 書類を検索
 * 検索結果を Streamlit 上で一覧表示
 
-### 📥 **2. 決算短信（PDF / XBRL）のダウンロード**
+### 📥 **2. 有価証券報告書・半期報告書・四半期報告書（PDF / XBRL）のダウンロード**
 
-* EDINET API からファイルを取得してローカル保存
+* EDINET API から書類ファイルを取得してローカル保存
 
 ### 📊 **3. 主要財務データの抽出（予定）**
 
@@ -31,7 +31,7 @@ EDINET から企業の決算短信を取得し、以下を行う Python ツー�
 
 ### 📰 **4. Markdown 記事生成（GitHub Pages / ブログ用）**
 
-* 決算内容を自動で Markdown に整形
+* 法定開示書類の内容を自動で Markdown に整形
 * GitHub Pages に貼るだけで記事になる形式を出力
 
 ### 📷 **5. Instagram 投稿用データ生成**
@@ -54,7 +54,7 @@ edinet-financial-tools/
     └─ modules/
         ├─ __init__.py
         ├─ edinet_client.py      # EDINET API 呼び出し
-        ├─ tanshin_parser.py     # 決算短信から財務データ抽出
+        ├─ tanshin_parser.py     # EDINET 提出書類から財務データ抽出
         ├─ markdown_generator.py # ブログ用 Markdown 生成
         ├─ instagram_data.py     # Instagram 用データ整形
         └─ settings.py           # 設定値管理
