@@ -1,4 +1,4 @@
-"""Streamlit application entrypoint for EDINET決算短信ビューア."""
+"""Streamlit application entrypoint for EDINET 報告書ビューア."""
 from __future__ import annotations
 
 from datetime import date, timedelta
@@ -12,7 +12,7 @@ from modules import edinet_client, instagram_data, markdown_generator, settings,
 def render_search_page() -> None:
     """Render the document search page."""
     st.header("書類検索")
-    st.write("EDINET から決算短信を検索します。条件を入力してください。")
+    st.write("EDINET から有価証券報告書／半期報告書／四半期報告書などを検索します。条件を入力してください。")
 
     default_start_date = st.session_state.get("submission_date_from") or date.today() - timedelta(days=30)
     default_end_date = st.session_state.get("submission_date_to") or date.today()
@@ -23,7 +23,16 @@ def render_search_page() -> None:
             "提出日",
             value=(default_start_date, default_end_date),
         )
-        document_type = st.selectbox("書類種別", ["決算短信", "四半期報告書", "有価証券報告書"])
+        document_type = st.selectbox(
+            "書類種別",
+            [
+                "すべて",
+                "有価証券報告書",
+                "半期報告書",
+                "四半期報告書",
+            ],
+        )
+        # TODO: 選択された書類種別を EDINET の docTypeCode などにマッピングして検索結果をフィルタリングする
         submitted = st.form_submit_button("検索")
 
     if submitted:
