@@ -38,11 +38,11 @@ def render_search_page() -> None:
         st.session_state["submission_date_from"] = start_date
         st.session_state["submission_date_to"] = end_date
 
-        params = {
-            "company_code": company_code,
-            "submission_date_from": start_date.isoformat() if start_date else None,
-            "submission_date_to": end_date.isoformat() if end_date else None,
-            "document_type": document_type,
+        target_date = start_date or end_date or date.today()
+
+        edinet_params = {
+            "date": target_date.isoformat(),
+            "type": 2,
         }
 
         status_placeholder = st.empty()
@@ -50,7 +50,7 @@ def render_search_page() -> None:
 
         try:
             status_placeholder.info("検索中です。しばらくお待ちください。")
-            results = edinet_client.search_documents(params)
+            results = edinet_client.search_documents(edinet_params)
         except Exception as exc:  # pragma: no cover - UI feedback path
             status_placeholder.error(f"検索中にエラーが発生しました: {exc}")
             return
