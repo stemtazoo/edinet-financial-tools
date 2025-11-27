@@ -1,6 +1,9 @@
 """Streamlit application entrypoint for EDINET決算短信ビューア."""
 from __future__ import annotations
 
+from datetime import date, timedelta
+from pathlib import Path
+
 import streamlit as st
 
 from modules import edinet_client, instagram_data, markdown_generator, settings, tanshin_parser
@@ -11,25 +14,88 @@ def render_search_page() -> None:
     st.header("書類検索")
     st.write("EDINET から決算短信を検索します。条件を入力してください。")
 
+    default_start_date = st.session_state.get("submission_date_from") or date.today() - timedelta(days=30)
+    default_end_date = st.session_state.get("submission_date_to") or date.today()
+
     with st.form("search_form"):
         company_code = st.text_input("企業コード / 銘柄コード / EDINET コード")
-        submission_date = st.date_input("提出日")
+        submission_date_range = st.date_input(
+            "提出日",
+            value=(default_start_date, default_end_date),
+        )
         document_type = st.selectbox("書類種別", ["決算短信", "四半期報告書", "有価証券報告書"])
         submitted = st.form_submit_button("検索")
 
     if submitted:
+        start_date, end_date = (
+            submission_date_range if isinstance(submission_date_range, tuple) else (None, None)
+        )
+
+        if start_date and end_date and start_date > end_date:
+            st.error("提出日の開始日は終了日より前の日付を指定してください。")
+            return
+
+        st.session_state["submission_date_from"] = start_date
+        st.session_state["submission_date_to"] = end_date
+
         params = {
             "company_code": company_code,
-            "submission_date": submission_date.isoformat() if submission_date else None,
+            "submission_date_from": start_date.isoformat() if start_date else None,
+            "submission_date_to": end_date.isoformat() if end_date else None,
             "document_type": document_type,
         }
-        st.info("検索中...（ダミー実装）")
-        results = edinet_client.search_documents(params)
+
+        status_placeholder = st.empty()
+        download_placeholder = st.empty()
+
+        try:
+            status_placeholder.info("検索中です。しばらくお待ちください。")
+            results = edinet_client.search_documents(params)
+        except Exception as exc:  # pragma: no cover - UI feedback path
+            status_placeholder.error(f"検索中にエラーが発生しました: {exc}")
+            return
+
         if results:
-            st.success("検索結果を表示します。")
-            st.dataframe(results)
+            status_placeholder.success("検索結果を表示します。")
+
+            header_cols = st.columns([2, 3, 2, 2, 2])
+            header_cols[0].markdown("**書類ID**")
+            header_cols[1].markdown("**企業名**")
+            header_cols[2].markdown("**提出日**")
+            header_cols[3].markdown("**書類種別**")
+            header_cols[4].markdown("**操作**")
+
+            for result in results:
+                doc_id = result.get("doc_id", "")
+                company = result.get("company_name", "")
+                submitted_at = result.get("submission_date", "")
+                doc_type = result.get("document_type", "")
+
+                row_cols = st.columns([2, 3, 2, 2, 2])
+                row_cols[0].write(doc_id)
+                row_cols[1].write(company)
+                row_cols[2].write(submitted_at)
+                row_cols[3].write(doc_type)
+
+                if row_cols[4].button("ダウンロード", key=f"download_{doc_id}"):
+                    try:
+                        download_placeholder.info(f"{doc_id} をダウンロード中です...")
+                        save_dir = Path("downloads")
+                        save_dir.mkdir(parents=True, exist_ok=True)
+                        edinet_client.download_document(doc_id, str(save_dir))
+                        download_placeholder.success(f"{doc_id} を {save_dir} に保存しました。")
+                    except Exception as exc:  # pragma: no cover - UI feedback path
+                        download_placeholder.error(f"ダウンロードに失敗しました: {exc}")
         else:
-            st.warning("検索結果がありません。TODO: EDINET API と接続して結果を取得します。")
+            date_range_label = "指定期間"
+            if start_date and end_date:
+                date_range_label = f"{start_date} 〜 {end_date}"
+            elif start_date:
+                date_range_label = f"{start_date} 以降"
+            elif end_date:
+                date_range_label = f"{end_date} 以前"
+
+            status_placeholder.warning(f"{date_range_label}に該当する検索結果はありません。")
 
 
 def render_financials_page() -> None:
