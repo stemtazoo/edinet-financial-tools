@@ -181,8 +181,8 @@ def render_settings_page() -> None:
 def main() -> None:
     """Application entrypoint defining navigation and page rendering."""
     st.set_page_config(page_title="EDINET 決算短信ビューア", layout="wide")
-    st.title("EDINET 決算短信ビューア")
-    st.caption("EDINET から取得した決算短信を閲覧・加工するツール")
+    st.title("EDINET 決算ビューア")
+    st.caption("EDINET から取得した決算資料を閲覧・加工するツール")
 
     page = st.sidebar.selectbox(
         "ページを選択", ["書類検索", "決算表示", "Markdown 生成", "Instagram 用データ生成", "設定"]
